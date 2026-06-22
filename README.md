@@ -9,6 +9,7 @@
 
 ![Claude Code](https://img.shields.io/badge/Claude%20Code-skill%20suite-6E56CF?logo=anthropic&logoColor=white)
 ![Market](https://img.shields.io/badge/market-Russia%20·%20MOEX%20·%20ОФЗ-0088CC)
+[![Release](https://img.shields.io/github/v/release/TimurTsedik/ru-market-analyst?sort=semver)](https://github.com/TimurTsedik/ru-market-analyst/releases)
 [![License: MIT](https://img.shields.io/github/license/TimurTsedik/ru-market-analyst)](LICENSE)
 ![Last commit](https://img.shields.io/github/last-commit/TimurTsedik/ru-market-analyst)
 [![Stars](https://img.shields.io/github/stars/TimurTsedik/ru-market-analyst?style=social)](https://github.com/TimurTsedik/ru-market-analyst/stargazers)
