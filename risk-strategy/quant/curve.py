@@ -20,7 +20,8 @@ def pca_factors(yields_hist, n_factors=3):
             "factor_cov": factor_cov, "mean_change": mean_change}
 
 def simulate_curve_terminal(base_yields, pca, n_paths, rng, horizon_scale=1.0,
-                            include_drift=False):
+                            include_drift=False, student_t_df=None, jump_prob=0.0,
+                            jump_scale=0.0):
     """Correlated factor innovations → yield changes → terminal curve.
     horizon_scale scales the factor covariance to the horizon: pass
     horizon_years*trading_days_per_year for i.i.d. random-walk daily changes (no
@@ -28,8 +29,14 @@ def simulate_curve_terminal(base_yields, pca, n_paths, rng, horizon_scale=1.0,
     include_drift=False (default) = no-drift risk view; True adds mean_change*horizon_scale."""
     k = pca["factor_cov"].shape[0]
     L = np.linalg.cholesky(pca["factor_cov"] * horizon_scale + 1e-12 * np.eye(k))
-    z = rng.standard_normal((n_paths, k))
+    if student_t_df:        # unit-variance-scaled Student-t (fat tails); var of t = df/(df-2)
+        z = rng.standard_t(student_t_df, size=(n_paths, k)) * np.sqrt((student_t_df-2)/student_t_df)
+    else:
+        z = rng.standard_normal((n_paths, k))
     factor_draws = z @ L.T
+    if jump_prob > 0:
+        hit = rng.random((n_paths, k)) < jump_prob
+        factor_draws = factor_draws + hit * rng.normal(0.0, jump_scale, (n_paths, k))
     dy = factor_draws @ pca["components"]              # (n_paths, n_tenors)
     if include_drift:
         dy = dy + pca["mean_change"] * horizon_scale

@@ -33,3 +33,14 @@ def test_vasicek_calibrate_recovers_params():
     est = curve.vasicek_calibrate(r, dt)
     assert abs(est["mu"] - mu) < 1.0
     assert est["sigma"] > 0 and est["lam"] > 0
+
+def test_student_t_fatter_tails_than_gaussian():
+    rng = np.random.default_rng(0)
+    hist = 10 + np.cumsum(rng.normal(0,0.05,(400,6)),axis=0)
+    pca = curve.pca_factors(hist,3); base = hist[-1]
+    g = curve.simulate_curve_terminal(base, pca, 100000, np.random.default_rng(1))
+    t = curve.simulate_curve_terminal(base, pca, 100000, np.random.default_rng(1),
+                                      student_t_df=4)
+    # excess kurtosis of the level factor larger under Student-t
+    from scipy.stats import kurtosis
+    assert kurtosis(t[:,0]) > kurtosis(g[:,0])
