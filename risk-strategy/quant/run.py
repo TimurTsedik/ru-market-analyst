@@ -5,10 +5,16 @@ from . import curve as _curve, mc as _mc, risk as _risk
 
 def run_analysis(portfolio, config):
     tenors = np.asarray(portfolio["tenors"], float)
+    _CREDIT_RISK = ("pd", "beta", "mean_rr")
+    for _p in portfolio["positions"]:
+        for _k in _CREDIT_RISK:
+            if _k in _p and f"{_k}_meta" not in _p:
+                raise ValueError("credit input without provenance — no-hardcode")
     pca = _curve.pca_factors(np.asarray(portfolio["yields_hist"], float),
                              config.get("n_factors", 3))
     out = _mc.simulate_book(portfolio["positions"], portfolio["base_yields"], tenors,
-                            pca, config["n_paths"], config["horizon"], config["seed"])
+                            pca, config["n_paths"], config["horizon"], config["seed"],
+                            credit_on=config.get("credit_on", False))
     losses = -out["port_return"]                      # loss = negative return
     a = config.get("alpha", 0.95)
     pos_losses = -out["pos_return"] * out["weights"]

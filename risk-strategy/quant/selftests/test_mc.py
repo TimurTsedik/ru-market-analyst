@@ -19,3 +19,13 @@ def test_simulate_book_shapes_and_convergence():
     out2 = mc.simulate_book(positions, base, tenors, pca, n_paths=20000,
                             horizon=1.0, seed=42)
     assert np.allclose(out["port_return"], out2["port_return"])   # seed reproducible
+
+def test_credit_overlay_increases_tail_loss():
+    pca, base = _pca(); tenors = np.array([0.5,1,2,3,5,7])
+    positions = [{"face":100,"coupon_pct":12,"freq":1,"maturity":3,"weight":1.0,"spread_bp":600,
+                  "pd":0.1,"beta":0.4,"mean_rr":0.4}]
+    no_credit = mc.simulate_book(positions, base, tenors, pca, 50000, 1.0, 42)
+    with_credit = mc.simulate_book(positions, base, tenors, pca, 50000, 1.0, 42,
+                                   credit_on=True)
+    from quant import risk
+    assert risk.es(-with_credit["port_return"],0.95) > risk.es(-no_credit["port_return"],0.95)
