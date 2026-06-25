@@ -15,7 +15,8 @@ def parse_gcurve(zcyc_json):
     tenors = np.array([p for p, _ in pairs])
     yields = np.array([v for _, v in pairs])
     pcols, prows = _block_rows(zcyc_json["params"])
-    params = {pcols[i]: prows[0][i] for i in range(len(pcols))}
+    # historical (&date=) queries return yearyields but an EMPTY params block — tolerate it
+    params = {pcols[i]: prows[0][i] for i in range(len(pcols))} if prows else {}
     return {"tenors": tenors, "yields": yields, "params": params,
             "asof": params.get("tradedate")}
 
@@ -39,6 +40,8 @@ def build_yields_history(dates, fetch_one=None):
     rows, kept, tenors = [], [], None
     for d in dates:
         c = parse_gcurve(fetch_one(d))
+        if c["yields"].size == 0:                       # no curve published (weekend/holiday)
+            continue
         if tenors is None:
             tenors = c["tenors"]
         if len(c["tenors"]) != len(tenors) or not np.allclose(c["tenors"], tenors):
