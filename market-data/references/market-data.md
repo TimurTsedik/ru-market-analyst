@@ -48,6 +48,15 @@
 - **Курсы:** `https://www.cbr.ru/scripts/XML_daily.asp` (XML, кодировка cp1251); JSON-зеркало
   `https://www.cbr-xml-daily.ru/daily_json.js` — fallback. USD/CNY/EUR + дата.
 
+## Кривая для MC: MOEX G-curve (КБД) + история
+- **Сегодня:** `https://iss.moex.com/iss/engines/stock/zcyc.json?iss.meta=off` → блок
+  `yearyields` (сроки 0.25–20y, value=доходность) + `params` (B1/B2/B3=β0/β1/β2, T1=τ,
+  G1–G9). Это уже подогнанная расширенная Nelson-Siegel — **не фитим сами**.
+- **История** (для PCA-факторов level/slope/curvature и вола): тот же URL + `from=YYYY-MM-DD`
+  (доступно с 2014-01-06). Тянет `quant/data.py`.
+- **Ставка/RUONIA для возврата к среднему:** CBR (`cbr.ru/.../KeyRate`); RUONIA/RGBI/ОФЗ-история
+  — подтверждай эндпоинт при калибровке, помечай as-of.
+
 ## Маршрут по классам (полная иерархия — `../../ru-market-shared/references/sources.md`)
 - Фонды / эквити / облигации (цена, YTM, дюрация, оборот) → **MOEX ISS**.
 - Рейтинги / оферты / амортизация / проспекты → **cbonds**.
