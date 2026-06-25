@@ -12,7 +12,7 @@ def es(losses, alpha):
     n = losses.size
     if n == 0:
         return float("nan")
-    k = max(1, int(np.ceil((1 - alpha) * n)))
+    k = max(1, int(np.ceil(round((1 - alpha) * n, 6))))   # round kills float noise (50.0000004→50)
     worst = np.partition(losses, n - k)[n - k:]
     return float(worst.mean())
 
@@ -27,7 +27,7 @@ def component_es(position_losses, alpha):
     tail as es). Sums exactly to es(portfolio)."""
     port = position_losses.sum(axis=1)
     n = port.size
-    k = max(1, int(np.ceil((1 - alpha) * n)))
+    k = max(1, int(np.ceil(round((1 - alpha) * n, 6))))   # same robust tail count as es()
     idx = np.argpartition(port, n - k)[n - k:]
     return position_losses[idx].mean(axis=0)
 

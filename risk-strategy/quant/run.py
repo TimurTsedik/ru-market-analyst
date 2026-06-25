@@ -42,6 +42,7 @@ def run_analysis(portfolio, config):
             "recovery_factor_load": config.get("recovery_factor_load", 0.15),
             "student_t_df": config.get("student_t_df"),
             "jump_prob": config.get("jump_prob", 0.0),
+            "jump_scale": config.get("jump_scale", 0.0),
             "include_drift": config.get("include_drift", False),
             "note": "recovery/correlation/jumps/Student-t are flagged assumptions — sensitivity-test; "
                     "curve via i.i.d. random-walk PCA (no mean-reversion)",

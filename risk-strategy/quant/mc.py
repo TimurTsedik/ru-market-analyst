@@ -27,17 +27,16 @@ def simulate_book(positions, base_yields, tenors, pca, n_paths, horizon, seed,
         for p in positions:
             if "pd" in p and ("beta" not in p or "mean_rr" not in p):
                 raise ValueError("credit position with pd needs beta and mean_rr (no silent default)")
-        pd = np.array([p.get("pd", 0.0) for p in positions])
-        beta = np.array([p.get("beta", 0.0) for p in positions])
-        mean_rr = np.array([p.get("mean_rr", 0.4) for p in positions])
+        credit_idx = [j for j, p in enumerate(positions) if "pd" in p]
+        pd = np.array([positions[j]["pd"] for j in credit_idx])
+        beta = np.array([positions[j]["beta"] for j in credit_idx])
+        mean_rr = np.array([positions[j]["mean_rr"] for j in credit_idx])
         dmask, Z = _credit.simulate_defaults(pd, beta, n_paths, seed + 2)
-        # recovery per (path, obligor) tied to the SAME systematic factor Z (neg PD-recovery);
-        # recovery_factor_load is a flagged assumption surfaced in run.py output
-        rr_paths = np.column_stack([_credit.recovery(Z, mean_rr[j], recovery_factor_load)
-                                    for j in range(len(positions))])
         # FLAGGED ASSUMPTION: default at horizon → defaulted position returns (recovery - 1)
-        # relative to its start mark (coupons-to-default folded into mark/spread). MVP
-        # relative-loss; precise default-timing/coupon-accrual is a later refinement.
-        pos_ret = np.where(dmask, rr_paths - 1.0, pos_ret)
+        # relative to its start mark. Override ONLY positions that carry pd (non-credit legs
+        # untouched — no micro-defaults); recovery tied to the SAME systematic factor Z.
+        for col, j in enumerate(credit_idx):
+            rr = _credit.recovery(Z, mean_rr[col], recovery_factor_load)
+            pos_ret[:, j] = np.where(dmask[:, col], rr - 1.0, pos_ret[:, j])
     port_ret = pos_ret @ weights
     return {"port_return": port_ret, "pos_return": pos_ret, "weights": weights}
