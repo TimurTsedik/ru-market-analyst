@@ -24,3 +24,25 @@ def fetch_gcurve(session=None):
     r = s.get(GCURVE_URL, params={"iss.meta": "off"}, timeout=30)
     r.raise_for_status()
     return parse_gcurve(r.json())
+
+def fetch_gcurve_on(date, session=None):
+    s = session or requests
+    r = s.get(GCURVE_URL, params={"iss.meta": "off", "date": date}, timeout=30)
+    r.raise_for_status()
+    return r.json()
+
+def build_yields_history(dates, fetch_one=None):
+    """Build (n_dates, 11) yields matrix by parsing each date's yearyields block.
+    fetch_one(date)->zcyc_json; default hits the live endpoint. Caller date-samples
+    (e.g. weekly) to bound HTTP calls. Skips dates whose tenor grid differs."""
+    fetch_one = fetch_one or fetch_gcurve_on
+    rows, kept, tenors = [], [], None
+    for d in dates:
+        c = parse_gcurve(fetch_one(d))
+        if tenors is None:
+            tenors = c["tenors"]
+        if len(c["tenors"]) != len(tenors) or not np.allclose(c["tenors"], tenors):
+            continue
+        rows.append(c["yields"]); kept.append(d)
+    return {"dates": kept, "tenors": np.asarray(tenors),
+            "yields_hist": np.array(rows)}
