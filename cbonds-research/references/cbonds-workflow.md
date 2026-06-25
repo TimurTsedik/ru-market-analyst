@@ -94,7 +94,8 @@ cbonds — первичный источник по инструментам. Р
   **мультипликаторы** (P/E, EV/EBITDA, ND/EBITDA, P/B), **прибыль/EBITDA/долг** при наличии,
   **free-float**, мажоритарий.
 - cbonds по эквити — **indicative/агрегатор**: его мультипликаторы НЕ выдавай за факт —
-  считай из МСФО (`../../ru-market-shared/references/equity-fundamentals.md`), cbonds = сверка.
+  пересчитай сам (live-цена/капитализация + число акций/классы из раскрытия + МСФО;
+  `../../ru-market-shared/references/equity-fundamentals.md`), cbonds = сверка.
 - Что брать вживую помимо cbonds (цена/free-float/дивиденды) и полная иерархия источников —
   `../../ru-market-shared/references/equity-fundamentals.md`.
 
