@@ -48,17 +48,21 @@
 - **Курсы:** `https://www.cbr.ru/scripts/XML_daily.asp` (XML, кодировка cp1251); JSON-зеркало
   `https://www.cbr-xml-daily.ru/daily_json.js` — fallback. USD/CNY/EUR + дата.
 
-## Эквити: дивиденды, free-float, веса индекса
+## Эквити: дивиденды, веса индекса, free-float
 - **Резолв тикера:** `https://iss.moex.com/iss/securities.json?q={ISIN|тикер}` → `secid` +
   `primary_boardid` (эквити обычно **TQBR**, но борд резолвь, не hardcode).
 - **Котировка/оборот:** `.../engines/stock/markets/shares/boards/{BOARD}/securities/{SECID}.json?iss.meta=off&iss.only=securities,marketdata`
   → `LAST/WAPRICE/...` (тот же fallback-каскад, что для облигаций) + `VALTODAY/NUMTRADES`.
 - **Дивиденды:** `https://iss.moex.com/iss/securities/{SECID}/dividends.json?iss.meta=off`
-  → таблица `registryclosedate` (отсечка) + `value` (DPS) + `currencyid`. Это **история/
-  объявленные**; будущие/прогноз подтверждай раскрытием эмитента (sanity-gate).
-- **Free-float и веса в индексе:** `https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/{INDEX}.json?iss.meta=off`
-  (напр. `IMOEX`) → по каждому тикеру вес и (где есть) коэффициент free-float. Имя поля
-  **резолвь по факту JSON-ключей**, не угадывай; нет в analytics → бери из раскрытия эмитента.
+  → колонки `registryclosedate` (отсечка) + `value` (DPS) + `currencyid` (проверено: SBER
+  отдаёт историю). Это **история/объявленные**; будущие/прогноз подтверждай раскрытием
+  эмитента (sanity-gate).
+- **Веса в индексе:** `https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/{INDEX}.json?iss.meta=off`
+  (напр. `IMOEX`) → колонки `secids` + `weight` (+ `tradedate` как as-of; проверено). Вес ≈
+  относительный размер free-float-капитализации, но **сам коэффициент free-float этот
+  эндпоинт НЕ отдаёт**.
+- **Free-float:** не в analytics → бери из **раскрытия эмитента / карточки бумаги на
+  MOEX**; имя поля резолвь по факту, не угадывай.
 - Эквити-фундаментал (прибыль/EBITDA/долг для мультипликаторов) ISS **не** отдаёт —
   считаем из МСФО (`../../ru-market-shared/references/equity-fundamentals.md`).
 
