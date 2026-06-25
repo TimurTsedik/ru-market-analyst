@@ -34,3 +34,27 @@ def simulate_curve_terminal(base_yields, pca, n_paths, rng, horizon_scale=1.0,
     if include_drift:
         dy = dy + pca["mean_change"] * horizon_scale
     return base_yields + dy
+
+def vasicek_calibrate(rate_series, dt):
+    """Exact-OU MLE/OLS on r_{t+1}=a+b r_t+e (b=e^{-lam*dt}). Exact discrete OU mapping:
+    lam=-ln(b)/dt; mu=a/(1-b); sigma=resid_std*sqrt(2*lam/(1-b^2)). Falls back gracefully
+    if b out of (0,1)."""
+    x = rate_series[:-1]; y = rate_series[1:]
+    b, a = np.polyfit(x, y, 1)
+    resid_std = (y - (a + b * x)).std(ddof=2)
+    if 0 < b < 1:
+        lam = -np.log(b) / dt
+        sigma = resid_std * np.sqrt(2 * lam / (1 - b**2))
+    else:                                   # near-unit-root: Euler fallback
+        lam = max((1.0 - b) / dt, 1e-6)
+        sigma = resid_std / np.sqrt(dt)
+    mu = a / (1 - b) if b != 1 else float(np.mean(rate_series))
+    return {"lam": lam, "mu": mu, "sigma": sigma}
+
+def vasicek_simulate(r0, params, horizon, n_steps, n_paths, rng):
+    lam, mu, sig = params["lam"], params["mu"], params["sigma"]
+    dt = horizon / n_steps
+    r = np.full(n_paths, float(r0))
+    for _ in range(n_steps):
+        r = r + lam*(mu-r)*dt + sig*np.sqrt(dt)*rng.standard_normal(n_paths)
+    return r

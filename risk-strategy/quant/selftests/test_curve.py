@@ -22,3 +22,14 @@ def test_pca_reconstruct_roundtrip():
                                            rng=np.random.default_rng(2))
     assert paths.shape == (5000, 6)
     assert np.allclose(paths.mean(axis=0), base, atol=0.05)  # zero-mean innovations
+
+def test_vasicek_calibrate_recovers_params():
+    rng = np.random.default_rng(3)
+    lam, mu, sigma, dt = 0.5, 8.0, 1.0, 1/252
+    n = 6000
+    r = np.empty(n); r[0] = 8.0
+    for t in range(1, n):
+        r[t] = r[t-1] + lam*(mu-r[t-1])*dt + sigma*np.sqrt(dt)*rng.standard_normal()
+    est = curve.vasicek_calibrate(r, dt)
+    assert abs(est["mu"] - mu) < 1.0
+    assert est["sigma"] > 0 and est["lam"] > 0
