@@ -77,7 +77,7 @@
 | **[ru-market-analyst](ru-market-analyst/SKILL.md)** | сквозной разбор портфеля (оркестратор) | отчёты / «свести портфель / что поменять / стратегия» |
 | **[broker-parse](broker-parse/SKILL.md)** | распарсить отчёт → позиции | «распарси этот отчёт» |
 | **[cbonds-research](cbonds-research/SKILL.md)** | разобрать бумагу по ISIN (cbonds, проспект) | «что по этой облигации / ISIN» |
-| **[market-data](market-data/SKILL.md)** | цена/ставка/курс/кривая (MOEX/ЦБ) | «дай цену/ставку/курс» |
+| **[market-data](market-data/SKILL.md)** | цена/ставка/курс/кривая + скрин бумаг (MOEX ISS bulk/ЦБ) | «дай цену/ставку/курс/кривую/скринер» |
 | **[risk-strategy](risk-strategy/SKILL.md)** | корзины + режим + «что если» → ТОП-5 | «корзины/стратегия по этим позициям» |
 | **[portfolio-kb](portfolio-kb/SKILL.md)** | база знаний портфеля + дифф (опц.) | «сохрани/обнови базу, что изменилось» |
 | **[ru-market-shared](ru-market-shared/SKILL.md)** | общий справочный пак (инструменты/источники/налоги) | внутренний, не триггерится напрямую |
