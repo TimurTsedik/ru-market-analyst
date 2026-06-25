@@ -36,3 +36,9 @@ def test_prob_weighted_scenarios():
     assert abs(out["expected"] - (0.6*0.05 + 0.3*-0.02 - 0.1*0.15)) < 1e-9
     assert out["worst"] == -0.15
     assert abs(out["prob_neg"] - 0.4) < 1e-9
+
+def test_es_handles_atom_at_var():
+    # 96% loss=0, 4% loss=1; VaR_95=0, but CVaR_95 = mean worst 5% = (4%*1 + 1%*0)/5% = 0.8
+    losses = np.concatenate([np.zeros(96000), np.ones(4000)])
+    assert abs(risk.es(losses, 0.95) - 0.8) < 0.01
+    assert risk.es(losses, 0.95) > risk.var(losses, 0.95)   # the bug the old mean>=VaR missed

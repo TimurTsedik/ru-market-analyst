@@ -5,9 +5,16 @@ def var(losses, alpha):
     return float(np.quantile(losses, alpha))
 
 def es(losses, alpha):
-    v = var(losses, alpha)
-    tail = losses[losses >= v]
-    return float(tail.mean()) if tail.size else v
+    """Historical CVaR = mean of the worst ceil((1-alpha)*n) losses. Rank-based (not
+    losses>=VaR) so it stays correct when VaR sits on an atom — e.g. credit-default
+    distributions with a mass point at zero loss."""
+    losses = np.asarray(losses)
+    n = losses.size
+    if n == 0:
+        return float("nan")
+    k = max(1, int(np.ceil((1 - alpha) * n)))
+    worst = np.partition(losses, n - k)[n - k:]
+    return float(worst.mean())
 
 def percentiles(values, pcts):
     return np.percentile(values, pcts)
@@ -16,11 +23,13 @@ def prob_loss_beyond(losses, threshold):
     return float(np.mean(losses > threshold))
 
 def component_es(position_losses, alpha):
-    """Euler/Expected-Shortfall contribution: E[L_i | L_port >= VaR_port]. Sums to portfolio ES."""
+    """Euler ES contribution: mean of L_i over the worst-k portfolio outcomes (same rank-based
+    tail as es). Sums exactly to es(portfolio)."""
     port = position_losses.sum(axis=1)
-    v = var(port, alpha)
-    mask = port >= v
-    return position_losses[mask].mean(axis=0)
+    n = port.size
+    k = max(1, int(np.ceil((1 - alpha) * n)))
+    idx = np.argpartition(port, n - k)[n - k:]
+    return position_losses[idx].mean(axis=0)
 
 def fan_chart_data(path_values, pcts=(5, 25, 50, 75, 95)):
     """path_values: (n_paths, n_steps). Returns dict pct->(n_steps,) bands."""

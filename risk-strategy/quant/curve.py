@@ -11,7 +11,10 @@ def pca_factors(yields_hist, n_factors=3):
     order = np.argsort(vals)[::-1]
     vals, vecs = vals[order], vecs[:, order]
     comps = vecs[:, :n_factors].T                      # (n_factors, n_tenors)
-    explained = (vals[:n_factors] / vals.sum())
+    total = vals.sum()
+    if not np.isfinite(total) or total <= 1e-12:
+        raise ValueError("insufficient curve variation for PCA (flat/degenerate history)")
+    explained = (vals[:n_factors] / total)
     scores = X @ vecs[:, :n_factors]                   # (n_days-1, n_factors)
     factor_cov = np.cov(scores, rowvar=False)
     if np.ndim(factor_cov) == 0:
@@ -27,6 +30,8 @@ def simulate_curve_terminal(base_yields, pca, n_paths, rng, horizon_scale=1.0,
     horizon_years*trading_days_per_year for i.i.d. random-walk daily changes (no
     autocorrelation/mean-reversion assumed — a flagged modelling choice).
     include_drift=False (default) = no-drift risk view; True adds mean_change*horizon_scale."""
+    if student_t_df is not None and student_t_df <= 2:
+        raise ValueError("student_t_df must be > 2 (finite-variance scaling requires df>2)")
     k = pca["factor_cov"].shape[0]
     L = np.linalg.cholesky(pca["factor_cov"] * horizon_scale + 1e-12 * np.eye(k))
     if student_t_df:        # unit-variance-scaled Student-t (fat tails); var of t = df/(df-2)
