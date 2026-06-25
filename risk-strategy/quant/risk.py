@@ -32,3 +32,11 @@ def es_standard_error(losses, alpha, n_batches=20):
     batches = [b for b in np.array_split(np.asarray(losses), n_batches) if len(b)]
     ests = np.array([es(b, alpha) for b in batches])
     return float(ests.std(ddof=1) / np.sqrt(len(ests)))
+
+def prob_weighted(scenarios):
+    """Lighter bridge: probabilities on a small deterministic scenario set.
+    scenarios: list of {'return','prob'} (probs need not sum to 1 — normalized)."""
+    p = np.array([s["prob"] for s in scenarios], float); p = p / p.sum()
+    r = np.array([s["return"] for s in scenarios], float)
+    return {"expected": float((p * r).sum()), "worst": float(r.min()),
+            "prob_neg": float(p[r < 0].sum())}

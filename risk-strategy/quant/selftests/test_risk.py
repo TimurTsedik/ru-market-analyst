@@ -28,3 +28,11 @@ def test_es_standard_error_shrinks_with_n():
     se_small = risk.es_standard_error(rng.normal(0, 1, 20000), 0.95)
     se_big = risk.es_standard_error(rng.normal(0, 1, 400000), 0.95)
     assert se_big < se_small and se_big > 0
+
+def test_prob_weighted_scenarios():
+    scen = [{"return": 0.05, "prob": 0.6}, {"return": -0.02, "prob": 0.3},
+            {"return": -0.15, "prob": 0.1}]
+    out = risk.prob_weighted(scen)
+    assert abs(out["expected"] - (0.6*0.05 + 0.3*-0.02 - 0.1*0.15)) < 1e-9
+    assert out["worst"] == -0.15
+    assert abs(out["prob_neg"] - 0.4) < 1e-9
