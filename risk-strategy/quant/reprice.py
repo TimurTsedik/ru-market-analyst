@@ -43,3 +43,25 @@ def mod_duration(cf, tenors, yields, bump=0.01):
     p_dn = price(times, amounts, tenors, yields - bump)
     p0 = price(times, amounts, tenors, yields)
     return -(p_up - p_dn) / (2 * bump / 100.0) / p0
+
+def floater_price_duration(reset_years):
+    """ОФЗ-ПК: price duration ≈ time to next coupon reset (low, not zero risk)."""
+    return float(reset_years)
+
+def linker_cashflows(face, coupon_pct, freq, maturity, cum_cpi):
+    """ОФЗ-ИН: principal indexed by cumulative CPI factor (lag handled by caller's as-of)."""
+    times, amounts = cashflows(face * cum_cpi, coupon_pct, freq, maturity)
+    return times, amounts
+
+def price_fx(cf, tenors, yields, fx, spread_bp=0.0):
+    """Замещайка/валютная: price in currency, convert to RUB at CBR rate fx (pass as-of fx).
+    FX is a simulated factor in mc when provided per-path; here a scalar for static pricing."""
+    times, amounts = cf
+    return price(times, amounts, tenors, yields, spread_bp) * fx
+
+def g_spread(issue_ytm, issue_duration, ofz_tenors, ofz_yields):
+    """RU canon: credit via G-spread to the duration-matched ОФЗ point (bp), not abs YTM.
+    issue_ytm / ofz_yields in percent; returns spread in basis points."""
+    base = float(np.interp(issue_duration, ofz_tenors, ofz_yields,
+                           left=ofz_yields[0], right=ofz_yields[-1]))
+    return (issue_ytm - base) * 100.0

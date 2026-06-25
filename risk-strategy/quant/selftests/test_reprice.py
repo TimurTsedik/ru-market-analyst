@@ -40,3 +40,28 @@ def test_mod_duration_positive_and_finite_diff():
     tenors = np.array([0.5,1,2,3,5,7]); y = np.full(6,8.0)
     d = reprice.mod_duration(cf, tenors, y)
     assert 3.0 < d < 5.0
+
+def test_floater_low_price_duration():
+    cf = reprice.cashflows(face=100, coupon_pct=16.0, freq=4, maturity=3)
+    tenors = np.array([0.25,0.5,1,2,3,5]); y = np.full(6, 16.0)
+    d_fix = reprice.mod_duration(cf, tenors, y)
+    d_flt = reprice.floater_price_duration(reset_years=0.25)
+    assert d_flt < d_fix and d_flt < 0.3            # floater price duration ≈ time to reset
+
+def test_linker_indexation_lifts_principal():
+    base = reprice.cashflows(face=100, coupon_pct=2.5, freq=1, maturity=3)
+    idx = reprice.linker_cashflows(face=100, coupon_pct=2.5, freq=1, maturity=3,
+                                   cum_cpi=1.10)     # +10% indexation
+    assert idx[1][-1] > base[1][-1]                  # indexed redemption higher
+
+def test_fx_repricing_scales_with_rate():
+    cf = reprice.cashflows(face=100, coupon_pct=5, freq=1, maturity=3)  # USD-denominated
+    tenors=np.array([0.5,1,2,3,5]); y=np.full(5,5.0)
+    rub_lo = reprice.price_fx(cf, tenors, y, fx=90.0)
+    rub_hi = reprice.price_fx(cf, tenors, y, fx=100.0)
+    assert rub_hi > rub_lo                            # weaker RUB → higher RUB value
+
+def test_g_spread_to_matched_duration_ofz():
+    ofz_t = np.array([1.0, 3.0, 5.0]); ofz_y = np.array([15.0, 16.0, 16.5])
+    # corporate YTM 19% at duration 3 → G-spread to the 3y ОФЗ (16%) = 300 bp
+    assert abs(reprice.g_spread(19.0, 3.0, ofz_t, ofz_y) - 300.0) < 1e-6
