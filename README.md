@@ -90,12 +90,14 @@
 | **[cbonds-research](cbonds-research/SKILL.md)** | разобрать бумагу по ISIN (cbonds, проспект) | «что по этой облигации / ISIN» |
 | **[market-data](market-data/SKILL.md)** | цена/ставка/курс/кривая + скрин бумаг (MOEX ISS bulk/ЦБ) | «дай цену/ставку/курс/кривую/скринер» |
 | **[risk-strategy](risk-strategy/SKILL.md)** | корзины + режим + «что если» → ТОП-5 | «корзины/стратегия по этим позициям» |
+| **[macro-geopolitics](macro-geopolitics/SKILL.md)** | макрорежим + геополит. сценарии + триггеры → стресс-входы для MC | «эскалация/деэскалация — что с портфелем», «держать актив или уходить под капконтролем» |
 | **[portfolio-kb](portfolio-kb/SKILL.md)** | база знаний портфеля + дифф (опц.) | «сохрани/обнови базу, что изменилось» |
 | **[ru-market-shared](ru-market-shared/SKILL.md)** | общий справочный пак (инструменты/источники/налоги) | внутренний, не триггерится напрямую |
 
 Оркестратор `ru-market-analyst` проходит фазы **inline-routing’ом** (читает и следует
 SKILL.md нужного суб-скилла): broker-parse → cbonds-research → market-data →
-risk-strategy (+ portfolio-kb по запросу). Каждый суб-скилл можно вызвать и отдельно.
+(macro-geopolitics, когда решение упирается в режим/геополитику) → risk-strategy
+(+ portfolio-kb по запросу). Каждый суб-скилл можно вызвать и отдельно.
 
 ## 🎬 Как пользоваться
 
@@ -133,6 +135,7 @@ risk-strategy (+ portfolio-kb по запросу). Каждый суб-скил
 | «Найди белли 3 года, A+, ~15%» | **market-data** (скринер) → **cbonds** (рейтинг) | реальные бумаги с MOEX (YTM/дюр/ликвидность); рейтинг A+ проверяется по cbonds (без подписки — по сайтам агентств) |
 | «Разбери эти позиции по корзинам и дай стратегию» | **risk-strategy** | корзины риска + режим + ТОП-5 вариантов |
 | «Прогони вероятностный сценарий по портфелю» | **risk-strategy** (квант-тир) | Monte-Carlo: ES/CVaR, перцентили, P(loss), fan-chart |
+| «Эскалация/деэскалация — что с портфелем?», «держать актив или уходить под капконтролем?» | **macro-geopolitics** | сценарное дерево (вероятности-с-основанием, anti-anchoring) + индикаторы + рыночно-вменённый кросс-чек + триггеры; опц. шок-вектор → MC |
 | «Сохрани портфель в базу / что изменилось?» | **portfolio-kb** | снимок портфеля + дифф с прошлым разом |
 
 ## 🚀 Установка
@@ -150,6 +153,7 @@ git clone https://github.com/TimurTsedik/ru-market-analyst.git
 ~/.claude/skills/cbonds-research     → <repo>/cbonds-research
 ~/.claude/skills/market-data         → <repo>/market-data
 ~/.claude/skills/risk-strategy       → <repo>/risk-strategy
+~/.claude/skills/macro-geopolitics   → <repo>/macro-geopolitics
 ~/.claude/skills/portfolio-kb        → <repo>/portfolio-kb
 ~/.claude/skills/ru-market-shared    → <repo>/ru-market-shared
 ```
@@ -184,7 +188,7 @@ git clone https://github.com/TimurTsedik/ru-market-analyst.git
 Когда пользователь присылает брокерские отчёты РФ или просит разобрать портфель/облигацию/
 риски/стратегию по рынку РФ — прочитай и следуй `~/agent-skills/ru-market-analyst/SKILL.md`
 и его `references/*`, при необходимости — суб-скиллы (broker-parse, cbonds-research,
-market-data, risk-strategy) и общий пак ru-market-shared (он рядом, соседней папкой).
+market-data, risk-strategy, macro-geopolitics) и общий пак ru-market-shared (он рядом, соседней папкой).
 Данные бери вживую (cbonds через браузер, MOEX ISS / ЦБ через веб), не из памяти.
 ```
 Дай Codex веб/браузер-доступ (его MCP/настройки), чтобы соблюдался no-hardcode.
